@@ -1,6 +1,4 @@
 import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from "typeorm";
-import { MemberStatus } from "./membership-status.enum";
-import { table } from "console";
 
 @Entity({ name: 'member' })
 export class Member extends BaseEntity {
