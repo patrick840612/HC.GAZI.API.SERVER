@@ -1,0 +1,17 @@
+server:
+  port: 5613
+
+# db:
+#   synchronize: false # synchronize를 false로 설정하여 자동 테이블 생성 비활성화
+db:
+  type: 'mysql'
+  host: 'localhost'
+  port: 3306
+  database: 'db_gazi'
+  username: 'root'
+  password: 'patrick'
+  synchronize: false
+
+jwt:
+  secret: 'Secret1234'
+  expiresIn: 60*60

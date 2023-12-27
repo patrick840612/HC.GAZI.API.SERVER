@@ -1,4 +1,7 @@
 import { TypeOrmModuleOptions } from "@nestjs/typeorm";
+import * as config from 'config';
+
+const dbConfig = config.get('db');
 
 // export const typeORMConfig : TypeOrmModuleOptions = {
 //     type: 'postgres',
@@ -12,12 +15,12 @@ import { TypeOrmModuleOptions } from "@nestjs/typeorm";
 // }
 
 export const typeORMConfig : TypeOrmModuleOptions = {
-    type: 'mysql',
-    host: 'localhost',
-    port: 3306,
-    username: 'root',
-    password: 'patrick',
-    database: 'db_gazi',
+    type: dbConfig.type,
+    host: dbConfig.host,
+    port: dbConfig.port,
+    username: dbConfig.username,
+    password: dbConfig.password,
+    database: dbConfig.database,
     entities: [__dirname + '/../**/*.entity.{js,ts}'],
-    synchronize: true  // synchronize를 false로 설정하여 자동 테이블 생성 비활성화
+    synchronize: dbConfig.synchronize
 }

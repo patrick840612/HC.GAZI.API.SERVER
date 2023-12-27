@@ -1,0 +1,15 @@
+server:
+  port: 5612
+
+db:
+  type: 'mysql'
+  host: 'localhost'
+  port: 3306
+  database: 'db_gazi'
+  username: 'root'
+  password: 'patrick'
+  synchronize: true
+
+jwt:
+  secret: 'Secret1234'
+  expiresIn: 60*60
