@@ -8,7 +8,7 @@ db:
   database: 'db_gazi'
   username: 'root'
   password: 'patrick'
-  synchronize: true
+  synchronize: false
 
 jwt:
   secret: 'Secret1234'
