@@ -1,15 +1,18 @@
 import { Module } from '@nestjs/common';
+import { ScheduleModule } from '@nestjs/schedule';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { typeORMConfig } from './configs/typeorm.config';
-import { LoggerService } from './logger.service';
+import { LoggerModule } from './logger/logger.module';
 import { MembershipModule } from './membership/membership.module';
 
 @Module({
   imports: [
     TypeOrmModule.forRoot(typeORMConfig),
-    MembershipModule
+    MembershipModule,
+    LoggerModule,
+    ScheduleModule.forRoot(),
   ],
   controllers: [],
-  providers: [LoggerService],
+  providers: [],
 })
 export class AppModule {}
