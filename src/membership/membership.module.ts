@@ -1,15 +1,22 @@
 import { Module } from '@nestjs/common';
-import { MembershipController } from './membership.controller';
-import { MembershipService } from './membership.service';
+import { APP_FILTER } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { MemberRepository } from './membership.repository';
+import { CustomHttpExceptionFilter } from './exception/custom_Exception';
+import { MembershipController } from './membership.controller';
 import { Member } from './membership.entity';
+import { MembershipService } from './membership.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([MemberRepository])
+    TypeOrmModule.forFeature([Member])
   ],
   controllers: [MembershipController],
-  providers: [MembershipService]
+  providers: [
+    MembershipService,
+    {
+    provide: APP_FILTER,
+    useClass: CustomHttpExceptionFilter,
+    },
+  ],
 })
 export class MembershipModule {}

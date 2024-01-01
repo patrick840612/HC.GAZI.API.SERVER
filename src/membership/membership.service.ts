@@ -1,104 +1,107 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { MemberStatus } from './membership-status.enum';
-import { v1 as uuid } from 'uuid';
-import { InsertMemberDto } from './dto/insert-member.dto';
-import { MemberRepository } from './membership.repository';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Member } from './membership.entity';
-import { FindOneOptions } from 'typeorm';
+import * as config from 'config';
+import { FindOneOptions, Repository } from 'typeorm';
+import { MemberSignUpDto } from './dto/memberSignUp.dto';
+import { Member, YesNoEnum } from './membership.entity';
+import { AES_256_ECB } from './util/AES_256_ECB';
 
 @Injectable()
 export class MembershipService {
+    private logger = new Logger('membershipService');
+
     constructor(
-        @InjectRepository(MemberRepository)
-        private memberRepository: MemberRepository
+        @InjectRepository(Member)
+        private memberRepository: Repository<Member>
     ){}
 
-    // private memberships: Membership[] = [];
+    // 가지 t_member 테이블에 가입정보 입력
+    async insertMember(memberSignUpDto: MemberSignUpDto): Promise<any> {
 
-    // mem: Membership;
-    // constructor() {
-    //     this.mem = {
-    //         id: "e7712ea0-9ef3-11ee-98be-93ee28056396",
-    //         member_id: "leekoon11",
-    //         password: "skdjfoisdkjgiksdjgikdsjgkd",
-    //         ci: "djoisjgviksdjgvkosjjbvkosdjklbmsdnlbnksdfnbkldfsnbkldfnbkdfn=="
-    //         , status: MemberStatus.TRUE
-    //     };
-    //     this.memberships.push(this.mem);
-    // }
+        const agreeGaziMarketing = memberSignUpDto.agreeGaziMarketing;
+        const encryptBody = memberSignUpDto.encryptBody;
 
-    // selectAllMember(): Membership[] {
-    //     return this.memberships;
-    // }
+        const aes256ecbConfig = config.get('aes256ecb');
 
-    // insertMember(insertMemberDto: InsertMemberDto) {
-    //     const { member_id, password, ci} = insertMemberDto;
+        // 복호화 유틸 생성
+        const aesCipher = new AES_256_ECB(aes256ecbConfig.secretKey);
 
-    //     const membership: Membership = {
-    //         id: uuid(),
-    //         member_id,
-    //         password,
-    //         ci,
-    //         status: MemberStatus.TRUE
-    //     }
+        try {
+            // encryptBody 복호화
+            const decryptedData = aesCipher.dec_aes(encryptBody);
 
-    //     this.memberships.push(membership);
-    //     return membership;
-    // }
+            // JSON 파싱
+            const parsedData = JSON.parse(decryptedData);
+            this.logger.log(`User ${parsedData.member_id} trying to Select_DB From t_member Table By ci : ${parsedData.ci}`);
 
-    async insertMember(insertMemberDto: InsertMemberDto): Promise<Member> {
-        const {member_id, password, ci} = insertMemberDto;
-        console.log(insertMemberDto);
-        const member = this.memberRepository.create({
-            member_id,
-            password,
-            ci 
-            // status
-        });
-console.log(member);
-        await this.memberRepository.save(member);
-        return member;
+            // ci로 가입정보 찾기
+            const memberByCi = await this.getMemberByCi(parsedData.ci);
+            if(memberByCi == null){
+                this.logger.warn(`User Selected DB Data : ${JSON.stringify(memberByCi)}`);
+            }else{
+                this.logger.log(`User Selected DB Data : ${JSON.stringify(memberByCi)}`);
+            }
+            
+
+            // 가입이력이 있으면 sns컬럼을 ochoice로 변경
+            if(memberByCi){
+
+                memberByCi.sns = 'ochoice';
+                await this.memberRepository.save(memberByCi);
+                this.logger.log(`User ${memberByCi.email} Updated Data sns column to : ${memberByCi.sns}`);
+                return {
+                    resultCode: HttpStatus.OK,
+                    resultMessage: '가입 정보가 수정되었습니다',
+                };
+
+            // 가입이력이 없으면 회원가입
+            }else{
+
+                // 엔티티로의 매핑
+                const memberEntity = this.memberRepository.create({
+                    email : parsedData.member_id,
+                    passwd : parsedData.password,
+                    name : parsedData.user_name,
+                    gender : parsedData.gender === 0 ? 'male' : 'female',
+                    phone : parsedData.tel,
+                    ci : parsedData.ci,
+                    di : parsedData.di,
+                    allow_email : agreeGaziMarketing == 1 ? YesNoEnum.YES : YesNoEnum.NO,
+                    allow_news : agreeGaziMarketing == 1 ? YesNoEnum.YES : YesNoEnum.NO,
+                    allow_event : agreeGaziMarketing == 1 ? YesNoEnum.YES : YesNoEnum.NO,
+                    staff_yn: YesNoEnum.NO,
+                    sns : 'ochoice',
+                });
+
+                // TypeORM을 사용하여 엔티티 저장
+                await this.memberRepository.save(memberEntity);
+                this.logger.log(`In case Selected DB_Data is null, Insert Data: ${JSON.stringify(memberEntity)}`);
+
+                return {
+                    resultCode: HttpStatus.OK,
+                    resultMessage: '가입이 완료되었습니다',
+                };
+
+            }
+
+
+        } catch (error) {
+            this.logger.error(`During the database insertion process is Failed Error message: ${error.message}`);
+            // 가입 실패
+            throw new HttpException('가입 정보 입력 중 오류가 발생했습니다.', HttpStatus.BAD_REQUEST);
+        }
     }
 
-    async getMemberById(id: number): Promise<Member> {
+    // ci로 기존 가입자 확인
+    async getMemberByCi(ci: any): Promise<Member> {
+
         const options: FindOneOptions<Member> = {
-            where: { id },
+            where: { ci },
         };
 
         const found = await this.memberRepository.findOne(options);
 
-        if(!found){
-            throw new NotFoundException(`Can't find Member with id ${id}`);
-        }
-
         return found;
     }
 
-    // selectMemberByCi(ci: string): Membership {
-    //     const found = this.memberships.find((membership) => membership.ci === ci);
-
-    //     if(!found) {
-    //         throw new NotFoundException(`Can't find Member with ci ${ci}`);
-    //     }
-
-    //     return found;
-    // }
-
-    // deleteMember(ci: string): void {
-    //     const found = this.selectMemberByCi(ci);
-    //     this.memberships = this.memberships.filter((membership) => membership.ci === found.ci);
-    // }
-
-    // updateMember(ci: string, password: string): Membership {
-    //     const member = this.selectMemberByCi(ci);
-    //     member.password = password;
-    //     return member;
-    // }
-
-    // updateMemberStatus(ci: string, status: MemberStatus): Membership {
-    //     const member = this.selectMemberByCi(ci);
-    //     member.status = status;
-    //     return member;
-    // }
 }

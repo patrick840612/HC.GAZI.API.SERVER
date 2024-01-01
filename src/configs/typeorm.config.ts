@@ -3,17 +3,6 @@ import * as config from 'config';
 
 const dbConfig = config.get('db');
 
-// export const typeORMConfig : TypeOrmModuleOptions = {
-//     type: 'postgres',
-//     host: 'localhost',
-//     port: 5432,
-//     username: 'postgres',
-//     password: 'patrick',
-//     database: 'db_gazi',
-//     entities: [__dirname + '/../**/*.entity.{js,ts}'],
-//     synchronize: true
-// }
-
 export const typeORMConfig : TypeOrmModuleOptions = {
     type: dbConfig.type,
     host: dbConfig.host,
@@ -22,5 +11,6 @@ export const typeORMConfig : TypeOrmModuleOptions = {
     password: dbConfig.password,
     database: dbConfig.database,
     entities: [__dirname + '/../**/*.entity.{js,ts}'],
-    synchronize: dbConfig.synchronize
+    synchronize: dbConfig.synchronize,
+    logging: true
 }

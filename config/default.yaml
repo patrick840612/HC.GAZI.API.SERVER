@@ -8,8 +8,7 @@ db:
   database: 'db_gazi'
   username: 'root'
   password: 'patrick'
-  synchronize: true
+  synchronize: false
 
-jwt:
-  secret: 'Secret1234'
-  expiresIn: 60*60
+aes256ecb:
+  secretKey: 'OchoiceAndGaziMembershipMatching'
