@@ -5,6 +5,8 @@ import { FindOneOptions, Repository } from 'typeorm';
 import { MemberSignUpDto } from './dto/memberSignUp.dto';
 import { Member, YesNoEnum } from './membership.entity';
 import { AES_256_ECB } from './util/AES_256_ECB';
+import axios from 'axios';
+import { RequestService } from './request.service';
 
 @Injectable()
 export class MembershipService {
@@ -12,8 +14,11 @@ export class MembershipService {
 
     constructor(
         @InjectRepository(Member)
-        private memberRepository: Repository<Member>
+        private memberRepository: Repository<Member>,
+
+        private requestService: RequestService
     ){}
+
 
     // 가지 t_member 테이블에 가입정보 입력
     async insertMember(memberSignUpDto: MemberSignUpDto): Promise<any> {
@@ -47,8 +52,11 @@ export class MembershipService {
             if(memberByCi){
 
                 memberByCi.sns = 'ochoice';
+                memberByCi.allow_email = agreeGaziMarketing == 1 ? YesNoEnum.YES : YesNoEnum.NO,
+                memberByCi.allow_news = agreeGaziMarketing == 1 ? YesNoEnum.YES : YesNoEnum.NO,
+                memberByCi.allow_event = agreeGaziMarketing == 1 ? YesNoEnum.YES : YesNoEnum.NO,
                 await this.memberRepository.save(memberByCi);
-                this.logger.log(`User ${memberByCi.email} Updated Data sns column to : ${memberByCi.sns}`);
+                this.logger.log(`User ${memberByCi.email} Updated Data sns column to : ${memberByCi.sns}, 마케팅 수신 여부`);
                 return {
                     resultCode: HttpStatus.OK,
                     resultMessage: '가지 가입 정보가 수정되었습니다',
@@ -76,6 +84,9 @@ export class MembershipService {
                 // TypeORM을 사용하여 엔티티 저장
                 await this.memberRepository.save(memberEntity);
                 this.logger.log(`In case Selected DB_Data is null, Insert Data: ${JSON.stringify(memberEntity)}`);
+
+                // 가입이 성공하면 토큰 값을 가져와 문자를 보내는 함수 호출
+                // const token = await this.requestService.requestSend();
 
                 return {
                     resultCode: HttpStatus.OK,

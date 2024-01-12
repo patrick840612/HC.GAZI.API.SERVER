@@ -5,6 +5,7 @@ import { CustomHttpExceptionFilter } from './exception/custom_Exception';
 import { MembershipController } from './membership.controller';
 import { Member } from './membership.entity';
 import { MembershipService } from './membership.service';
+import { RequestService } from './request.service';
 
 @Module({
   imports: [
@@ -12,7 +13,7 @@ import { MembershipService } from './membership.service';
   ],
   controllers: [MembershipController],
   providers: [
-    MembershipService,
+    MembershipService, RequestService,
     {
     provide: APP_FILTER,
     useClass: CustomHttpExceptionFilter,
