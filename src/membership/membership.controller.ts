@@ -1,4 +1,4 @@
-import { Body, Controller, Logger, Post, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, HttpStatus, Logger, Post, UsePipes, ValidationPipe } from '@nestjs/common';
 import { MemberSignUpDto } from './dto/memberSignUp.dto';
 import { MembershipService } from './membership.service';
 
@@ -9,9 +9,19 @@ export class MembershipController {
 
     @Post('signUp')
     @UsePipes(ValidationPipe)
-    insertMember(@Body() memberSignUpDto: MemberSignUpDto ): Promise<any> {
+    async insertMember(@Body() memberSignUpDto: MemberSignUpDto ): Promise<any> {
         this.logger.log(`User trying to register Gazi with Ochoice from requestBody : ${JSON.stringify(memberSignUpDto)}`);
-        return this.membershipService.insertMember(memberSignUpDto);
+        try {
+            const response = await this.membershipService.insertMember(memberSignUpDto);
+            console.log('Response To AuthServer : ', response);
+            return response;
+        } catch (error) {
+            console.error('Error during member insertion:', error);
+            return {
+                resultCode: HttpStatus.INTERNAL_SERVER_ERROR,
+                resultMessage: 'Internal Server Error',
+            };
+        }
     }
 
 }

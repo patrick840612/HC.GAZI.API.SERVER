@@ -12,8 +12,8 @@ export class ScheduleDeleteOldLogsService implements OnApplicationBootstrap {
 
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async deleteOldLogs() {
-    const logsPath = 'logs'; // 실제 로그 디렉토리 경로로 수정
-    const retentionPeriodInDays = 7; // 일주일 이전의 로그를 유지
+    const logsPath = 'logs'; // 실제 로그 디렉토리 경로
+    const retentionPeriodInDays = 180; // ~일 이전의 로그를 유지
 
     await this.deleteOldLogsService.deleteOldLogs(logsPath, retentionPeriodInDays);
   }

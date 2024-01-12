@@ -51,7 +51,7 @@ export class MembershipService {
                 this.logger.log(`User ${memberByCi.email} Updated Data sns column to : ${memberByCi.sns}`);
                 return {
                     resultCode: HttpStatus.OK,
-                    resultMessage: '가입 정보가 수정되었습니다',
+                    resultMessage: '가지 가입 정보가 수정되었습니다',
                 };
 
             // 가입이력이 없으면 회원가입
@@ -79,7 +79,7 @@ export class MembershipService {
 
                 return {
                     resultCode: HttpStatus.OK,
-                    resultMessage: '가입이 완료되었습니다',
+                    resultMessage: '가지 가입이 완료되었습니다',
                 };
 
             }
@@ -88,7 +88,7 @@ export class MembershipService {
         } catch (error) {
             this.logger.error(`During the database insertion process is Failed Error message: ${error.message}`);
             // 가입 실패
-            throw new HttpException('가입 정보 입력 중 오류가 발생했습니다.', HttpStatus.BAD_REQUEST);
+            throw new HttpException('가지 가입 정보 입력 중 오류가 발생했습니다.', HttpStatus.BAD_REQUEST);
         }
     }
 
